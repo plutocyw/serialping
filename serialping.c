@@ -295,9 +295,16 @@ int main(int argc, char **argv)
             return -1;
             break;
     }
+#ifdef CBAUD
     ts.c_cflag &= ~(CBAUD);
     ts.c_cflag |= baudRate;
-
+#else
+    cfsetispeed( &ts, baudRate );
+    cfsetospeed( &ts, baudRate );
+#endif
+    ts.c_cflag &= ~CSIZE;
+    ts.c_cflag |= CS8;
+    ts.c_cflag &= ~CSTOPB;
     uint32_t charSize;
     ++underscorePtr;
     switch(*underscorePtr)
@@ -376,6 +383,7 @@ int main(int argc, char **argv)
     /* Set the device options */
     if (0 != tcsetattr(spFd, TCSANOW, &ts))
     {
+        printf("ERROR: goto cleanup_open.\n");
         goto cleanup_open;
     }
 
